@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Circuit Bending — Sony DSC-P31</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Anton&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #050505;
+    --white: #f0ede6;
+    --green: #00ff88;
+    --pink: #ff2d78;
+    --cyan: #00e5ff;
+    --yellow: #ffe600;
+    --mid: #1a1a1a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Space Mono', monospace;
+    overflow-x: hidden;
+    cursor: crosshair;
+  }
+
+  /* NOISE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.35;
+    mix-blend-mode: overlay;
+  }
+
+  /* SCANLINES */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 9998;
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 2px solid var(--green);
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse 60% 50% at 70% 50%, rgba(0,255,136,0.07) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 60% at 20% 80%, rgba(255,45,120,0.06) 0%, transparent 70%),
+      var(--black);
+  }
+
+  .hero-nav {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem 3rem;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .nav-logo {
+    font-family: 'Anton', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.3em;
+    color: var(--green);
+    text-transform: uppercase;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 2.5rem;
+    list-style: none;
+  }
+
+  .nav-links a {
+    color: var(--white);
+    text-decoration: none;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    opacity: 0.6;
+    transition: opacity 0.2s, color 0.2s;
+  }
+
+  .nav-links a:hover { opacity: 1; color: var(--green); }
+
+  .hero-content {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 4rem 3rem;
+  }
+
+  .hero-tag {
+    font-size: 0.65rem;
+    letter-spacing: 0.4em;
+    color: var(--green);
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    animation: fadeInUp 0.8s ease both;
+  }
+
+  .hero-tag::before { content: '▶ '; }
+
+  .hero-title {
+    font-family: 'Anton', sans-serif;
+    font-size: clamp(4rem, 10vw, 9rem);
+    line-height: 0.9;
+    text-transform: uppercase;
+    animation: fadeInUp 0.8s 0.1s ease both;
+    position: relative;
+  }
+
+  .hero-title .glitch-word {
+    display: inline-block;
+    position: relative;
+    color: var(--white);
+  }
+
+  .hero-title .glitch-word::before,
+  .hero-title .glitch-word::after {
+    content: attr(data-text);
+    position: absolute;
+    inset: 0;
+    animation: glitch-text 4s infinite;
+  }
+
+  .hero-title .glitch-word::before {
+    color: var(--cyan);
+    clip-path: polygon(0 30%, 100% 30%, 100% 50%, 0 50%);
+    animation: glitch-text-1 4s infinite;
+  }
+
+  .hero-title .glitch-word::after {
+    color: var(--pink);
+    clip-path: polygon(0 60%, 100% 60%, 100% 80%, 0 80%);
+    animation: glitch-text-2 4s infinite;
+  }
+
+  .hero-subtitle {
+    font-family: 'Anton', sans-serif;
+    font-size: clamp(2rem, 5vw, 4.5rem);
+    color: var(--green);
+    line-height: 1;
+    margin-top: 0.5rem;
+    animation: fadeInUp 0.8s 0.2s ease both;
+  }
+
+  .hero-model {
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    color: rgba(255,255,255,0.4);
+    margin-top: 2rem;
+    animation: fadeInUp 0.8s 0.3s ease both;
+  }
+
+  .hero-model span { color: var(--cyan); }
+
+  .hero-scroll {
+    position: relative;
+    z-index: 10;
+    padding: 2rem 3rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    color: rgba(255,255,255,0.3);
+    text-transform: uppercase;
+    animation: fadeInUp 0.8s 0.5s ease both;
+  }
+
+  .scroll-line {
+    width: 60px;
+    height: 1px;
+    background: var(--green);
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+
+  /* ─── INTRO SECTION ─── */
+  .intro {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 60vh;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .intro-text {
+    padding: 5rem 3rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-right: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .section-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.4em;
+    color: var(--green);
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.15);
+  }
+
+  .intro-text h2 {
+    font-family: 'Anton', sans-serif;
+    font-size: clamp(2rem, 3.5vw, 3rem);
+    line-height: 1.1;
+    margin-bottom: 2rem;
+  }
+
+  .intro-text p {
+    font-family: 'Courier Prime', monospace;
+    font-size: 0.85rem;
+    line-height: 1.9;
+    color: rgba(255,255,255,0.65);
+    margin-bottom: 1.2rem;
+  }
+
+  .intro-text p strong { color: var(--green); font-family: 'Space Mono', monospace; }
+
+  .intro-stats {
+    padding: 5rem 3rem;
+    display: grid;
+    grid-template-rows: repeat(3, 1fr);
+  }
+
+  .stat-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 2rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .stat-item:last-child { border-bottom: none; }
+
+  .stat-num {
+    font-family: 'Anton', sans-serif;
+    font-size: 3.5rem;
+    color: var(--pink);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+    margin-top: 0.5rem;
+  }
+
+  /* ─── PCB SECTION ─── */
+  .pcb-section {
+    padding: 5rem 3rem;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    background: var(--mid);
+  }
+
+  .pcb-header {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 3rem;
+    align-items: end;
+    margin-bottom: 3rem;
+  }
+
+  .pcb-header h2 {
+    font-family: 'Anton', sans-serif;
+    font-size: clamp(2.5rem, 5vw, 5rem);
+    line-height: 1;
+  }
+
+  .pcb-header p {
+    font-family: 'Courier Prime', monospace;
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.8;
+    padding-bottom: 0.5rem;
+  }
+
+  .pcb-img-frame {
+    position: relative;
+    border: 1px solid rgba(0,255,136,0.3);
+    overflow: hidden;
+    background: #0a0a0a;
+  }
+
+  .pcb-img-frame img {
+    width: 100%;
+    display: block;
+    filter: brightness(0.9) contrast(1.1);
+    transition: filter 0.3s;
+  }
+
+  .pcb-img-frame:hover img {
+    filter: brightness(1) contrast(1.2) hue-rotate(10deg);
+  }
+
+  .pcb-img-frame::before {
+    content: 'CD-391 BOARD — CCD IMAGER';
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    font-size: 0.55rem;
+    letter-spacing: 0.2em;
+    color: var(--green);
+    z-index: 5;
+    background: rgba(0,0,0,0.8);
+    padding: 0.3rem 0.6rem;
+  }
+
+  .pcb-corner {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-color: var(--green);
+    border-style: solid;
+    z-index: 5;
+  }
+
+  .pcb-corner.tl { top: 0; left: 0; border-width: 2px 0 0 2px; }
+  .pcb-corner.tr { top: 0; right: 0; border-width: 2px 2px 0 0; }
+  .pcb-corner.bl { bottom: 0; left: 0; border-width: 0 0 2px 2px; }
+  .pcb-corner.br { bottom: 0; right: 0; border-width: 0 2px 2px 0; }
+
+  /* ─── GLITCH GALLERY ─── */
+  .gallery-section {
+    padding: 5rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .gallery-header {
+    padding: 0 3rem 3rem;
+  }
+
+  .gallery-header h2 {
+    font-family: 'Anton', sans-serif;
+    font-size: clamp(2.5rem, 5vw, 5rem);
+  }
+
+  .gallery-header h2 em {
+    font-style: normal;
+    color: var(--pink);
+    -webkit-text-stroke: 0px;
+  }
+
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: auto;
+    gap: 3px;
+  }
+
+  .gallery-item {
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    background: #0a0a0a;
+  }
+
+  .gallery-item.wide { grid-column: span 2; }
+  .gallery-item.tall { grid-row: span 2; }
+
+  .gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    min-height: 220px;
+    transition: transform 0.4s ease, filter 0.4s ease;
+    filter: saturate(1.1) contrast(1.05);
+  }
+
+  .gallery-item:hover img {
+    transform: scale(1.04);
+    filter: saturate(1.4) contrast(1.15) brightness(1.05);
+  }
+
+  .gallery-item .overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    display: flex;
+    align-items: flex-end;
+    padding: 1rem;
+  }
+
+  .gallery-item:hover .overlay { opacity: 1; }
+
+  .overlay-text {
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    color: var(--green);
+    text-transform: uppercase;
+  }
+
+  /* glitch flicker on hover */
+  .gallery-item:hover::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      transparent 0%,
+      rgba(0,229,255,0.04) 50%,
+      transparent 100%
+    );
+    animation: scanflicker 0.15s infinite;
+    pointer-events: none;
+  }
+
+  /* ─── LIGHTBOX ─── */
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.95);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+
+  .lightbox.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .lightbox img {
+    max-width: 90vw;
+    max-height: 85vh;
+    object-fit: contain;
+    border: 1px solid rgba(0,255,136,0.3);
+  }
+
+  .lightbox-close {
+    position: absolute;
+    top: 2rem;
+    right: 2rem;
+    font-size: 1.5rem;
+    color: var(--white);
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-family: 'Space Mono', monospace;
+    opacity: 0.6;
+    transition: opacity 0.2s, color 0.2s;
+  }
+
+  .lightbox-close:hover { opacity: 1; color: var(--pink); }
+
+  /* ─── PROCESS SECTION ─── */
+  .process-section {
+    padding: 5rem 3rem;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .process-section h2 {
+    font-family: 'Anton', sans-serif;
+    font-size: clamp(2.5rem, 5vw, 5rem);
+    margin-bottom: 3rem;
+  }
+
+  .process-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+  }
+
+  .process-item {
+    background: var(--mid);
+    padding: 2.5rem;
+    position: relative;
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: border-color 0.3s;
+  }
+
+  .process-item:hover { border-color: var(--green); }
+
+  .process-num {
+    font-family: 'Anton', sans-serif;
+    font-size: 5rem;
+    color: rgba(255,255,255,0.05);
+    line-height: 1;
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+  }
+
+  .process-icon {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .process-item h3 {
+    font-family: 'Anton', sans-serif;
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    color: var(--green);
+  }
+
+  .process-item p {
+    font-family: 'Courier Prime', monospace;
+    font-size: 0.8rem;
+    line-height: 1.8;
+    color: rgba(255,255,255,0.55);
+  }
+
+  /* ─── TICKER ─── */
+  .ticker {
+    overflow: hidden;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 1rem 0;
+    background: var(--mid);
+  }
+
+  .ticker-inner {
+    display: flex;
+    gap: 3rem;
+    animation: tickerScroll 25s linear infinite;
+    white-space: nowrap;
+  }
+
+  .ticker-item {
+    font-family: 'Anton', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    color: rgba(255,255,255,0.25);
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+
+  .ticker-item.accent { color: var(--green); }
+
+  /* ─── FOOTER ─── */
+  footer {
+    padding: 4rem 3rem;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: end;
+  }
+
+  footer h2 {
+    font-family: 'Anton', sans-serif;
+    font-size: clamp(3rem, 6vw, 6rem);
+    line-height: 0.9;
+    color: var(--white);
+  }
+
+  footer h2 span { color: var(--green); }
+
+  .footer-meta {
+    text-align: right;
+  }
+
+  .footer-meta p {
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: rgba(255,255,255,0.3);
+    line-height: 2;
+    text-transform: uppercase;
+  }
+
+  .footer-meta p span { color: var(--cyan); }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes glitch-text-1 {
+    0%, 90%, 100% { transform: translateX(0); opacity: 0; }
+    92% { transform: translateX(-3px); opacity: 0.7; }
+    94% { transform: translateX(3px); opacity: 0.7; }
+    96% { transform: translateX(-1px); opacity: 0.5; }
+    98% { transform: translateX(0); opacity: 0; }
+  }
+
+  @keyframes glitch-text-2 {
+    0%, 85%, 100% { transform: translateX(0); opacity: 0; }
+    87% { transform: translateX(3px); opacity: 0.7; }
+    89% { transform: translateX(-3px); opacity: 0.7; }
+    91% { transform: translateX(1px); opacity: 0.5; }
+    93% { transform: translateX(0); opacity: 0; }
+  }
+
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 1; transform: scaleX(1); }
+    50% { opacity: 0.4; transform: scaleX(0.6); }
+  }
+
+  @keyframes scanflicker {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-100%); }
+    100% { transform: translateY(-200%); }
+  }
+
+  @keyframes tickerScroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 900px) {
+    .intro { grid-template-columns: 1fr; }
+    .intro-text { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .intro-stats { grid-template-rows: auto; grid-template-columns: repeat(3, 1fr); padding: 3rem; }
+    .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+    .gallery-item.wide, .gallery-item.tall { grid-column: span 1; grid-row: span 1; }
+    .process-grid { grid-template-columns: 1fr; }
+    footer { grid-template-columns: 1fr; }
+    .footer-meta { text-align: left; }
+    .hero-nav { padding: 1.5rem 1.5rem; }
+    .nav-links { gap: 1.5rem; }
+    .hero-content { padding: 3rem 1.5rem; }
+    .intro-text, .pcb-section, .gallery-header, .process-section { padding-left: 1.5rem; padding-right: 1.5rem; }
+  }
+
+  @media (max-width: 600px) {
+    .gallery-grid { grid-template-columns: 1fr; }
+    .intro-stats { grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+    footer { padding: 3rem 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <nav class="hero-nav">
+    <div class="nav-logo">CB/DSC-P31</div>
+    <ul class="nav-links">
+      <li><a href="#hardware">Hardware</a></li>
+      <li><a href="#glitch">Glitch</a></li>
+      <li><a href="#proceso">Proceso</a></li>
+    </ul>
+  </nav>
+
+  <div class="hero-content">
+    <p class="hero-tag">Proyecto de arte experimental · Circuit Bending</p>
+    <h1 class="hero-title">
+      <span class="glitch-word" data-text="CIRCUIT">CIRCUIT</span><br>
+      <span class="glitch-word" data-text="BENDING">BENDING</span>
+    </h1>
+    <p class="hero-subtitle">A LA SONY</p>
+    <p class="hero-model">MODELO <span>DSC-P31</span> — DIGITAL STILL CAMERA — 2002</p>
+  </div>
+
+  <div class="hero-scroll">
+    <div class="scroll-line"></div>
+    Scroll para explorar
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-inner">
+    <span class="ticker-item accent">▶ CIRCUIT BENDING</span>
+    <span class="ticker-item">SONY DSC-P31</span>
+    <span class="ticker-item accent">▶ CCD GLITCH</span>
+    <span class="ticker-item">CD-391 BOARD</span>
+    <span class="ticker-item accent">▶ EXPERIMENTAL</span>
+    <span class="ticker-item">SIGNAL CORRUPTION</span>
+    <span class="ticker-item accent">▶ ARTE DIGITAL</span>
+    <span class="ticker-item">MODIFICACIÓN ANALÓGICA</span>
+    <!-- duplicate -->
+    <span class="ticker-item accent">▶ CIRCUIT BENDING</span>
+    <span class="ticker-item">SONY DSC-P31</span>
+    <span class="ticker-item accent">▶ CCD GLITCH</span>
+    <span class="ticker-item">CD-391 BOARD</span>
+    <span class="ticker-item accent">▶ EXPERIMENTAL</span>
+    <span class="ticker-item">SIGNAL CORRUPTION</span>
+    <span class="ticker-item accent">▶ ARTE DIGITAL</span>
+    <span class="ticker-item">MODIFICACIÓN ANALÓGICA</span>
+  </div>
+</div>
+
+<!-- INTRO -->
+<section class="intro">
+  <div class="intro-text">
+    <p class="section-label">00 — Concepto</p>
+    <h2>¿Qué es el<br>Circuit Bending?</h2>
+    <p>El <strong>circuit bending</strong> es la práctica de modificar físicamente circuitos electrónicos de consumo para crear instrumentos y herramientas de arte experimental. A diferencia del hacking de software, aquí las intervenciones son puramente analógicas: cables, contactos y cortocircuitos controlados.</p>
+    <p>En este proyecto, la <strong>Sony DSC-P31</strong> fue intervenida directamente en su placa principal, exponiendo puntos de la señal CCD para ser manipulados en tiempo real mediante un panel de conectores externos.</p>
+    <p>El resultado: imágenes corrompidas de manera impredecible, donde el <strong>error se convierte en estética</strong>.</p>
+  </div>
+  <div class="intro-stats">
+    <div class="stat-item">
+      <div class="stat-num">2002</div>
+      <div class="stat-label">Año de fabricación de la cámara</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">1.3<span style="font-size:1.5rem">MP</span></div>
+      <div class="stat-label">Resolución del sensor CCD</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">12</div>
+      <div class="stat-label">Puntos de contacto modificados</div>
+    </div>
+  </div>
+</section>
+
+<!-- PCB SECTION -->
+<section class="pcb-section" id="hardware">
+  <div class="pcb-header">
+    <div>
+      <p class="section-label">01 — Hardware</p>
+      <h2>La placa<br>CD-391</h2>
+    </div>
+    <p>La placa CD-391 es el corazón del sensor de la DSC-P31. Contiene el <strong style="color:var(--green)">IC301</strong> — el chip CCD imager — responsable de capturar y convertir la luz en señal digital. Es una placa de cuatro capas con soldadura sin plomo. Los puntos de intervención se encuentran en los pines de la columna A (filas 1-8 y 9-16), que transmiten la señal de imagen sin procesar.</p>
+  </div>
+  <div class="pcb-img-frame">
+    <div class="pcb-corner tl"></div>
+    <div class="pcb-corner tr"></div>
+    <div class="pcb-corner bl"></div>
+    <div class="pcb-corner br"></div>
+    <img src="fef34dfd.png" alt="Diagrama PCB CD-391 Sony DSC-P31" loading="lazy">
+  </div>
+</section>
+
+<!-- GLITCH GALLERY -->
+<section class="gallery-section" id="glitch">
+  <div class="gallery-header">
+    <p class="section-label">02 — Evidencias</p>
+    <h2>OUTPUT <em>GLITCH</em></h2>
+  </div>
+
+  <div class="gallery-grid">
+    <!-- Row 1 -->
+    <div class="gallery-item wide" onclick="openLightbox(this)">
+      <img src="rdgr5.png" alt="Glitch bear toy" loading="lazy">
+      <div class="overlay"><span class="overlay-text">CCD vertical noise</span></div>
+    </div>
+    <div class="gallery-item" onclick="openLightbox(this)">
+      <img src="dfgre5r.png" alt="Glitch white scan" loading="lazy">
+      <div class="overlay"><span class="overlay-text">Signal wash</span></div>
+    </div>
+    <div class="gallery-item" onclick="openLightbox(this)">
+      <img src="dfgr5.png" alt="Glitch portrait scan" loading="lazy">
+      <div class="overlay"><span class="overlay-text">Horizontal interlace</span></div>
+    </div>
+
+    <!-- Row 2 -->
+    <div class="gallery-item" onclick="openLightbox(this)">
+      <img src="rger5.png" alt="Glitch party" loading="lazy">
+      <div class="overlay"><span class="overlay-text">Color separation</span></div>
+    </div>
+    <div class="gallery-item wide tall" onclick="openLightbox(this)">
+      <img src="g5tgrd.png" alt="Glitch face close" loading="lazy">
+      <div class="overlay"><span class="overlay-text">Portrait melt</span></div>
+    </div>
+    <div class="gallery-item" onclick="openLightbox(this)">
+      <img src="gfergr54.png" alt="Glitch outdoor neon" loading="lazy">
+      <div class="overlay"><span class="overlay-text">Vertical bleed</span></div>
+    </div>
+
+    <!-- Row 3 -->
+    <div class="gallery-item" onclick="openLightbox(this)">
+      <img src="sdf4t.png" alt="Glitch portrait red" loading="lazy">
+      <div class="overlay"><span class="overlay-text">RGB desync</span></div>
+    </div>
+    <div class="gallery-item" onclick="openLightbox(this)">
+      <img src="sefe45.png" alt="Glitch portrait pink" loading="lazy">
+      <div class="overlay"><span class="overlay-text">Pink channel overflow</span></div>
+    </div>
+    <div class="gallery-item" onclick="openLightbox(this)">
+      <img src="fdse44r4.png" alt="Glitch portrait pink back" loading="lazy">
+      <div class="overlay"><span class="overlay-text">Signal ghost</span></div>
+    </div>
+
+    <!-- Row 4 -->
+    <div class="gallery-item wide" onclick="openLightbox(this)">
+      <img src="3423432.png" alt="Glitch drummer" loading="lazy">
+      <div class="overlay"><span class="overlay-text">Dual frame corruption</span></div>
+    </div>
+    <div class="gallery-item" onclick="openLightbox(this)">
+      <img src="1321213423.png" alt="Glitch faces" loading="lazy">
+      <div class="overlay"><span class="overlay-text">Data smear</span></div>
+    </div>
+    <div class="gallery-item" onclick="openLightbox(this)">
+      <img src="1223423.png" alt="Glitch silhouette" loading="lazy">
+      <div class="overlay"><span class="overlay-text">Silhouette collapse</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section class="process-section" id="proceso">
+  <p class="section-label">03 — Proceso</p>
+  <h2>Cómo se hizo</h2>
+  <div class="process-grid">
+    <div class="process-item">
+      <div class="process-num">01</div>
+      <div class="process-icon">🔩</div>
+      <h3>Desensamble</h3>
+      <p>La cámara fue abierta siguiendo el Service Manual oficial de Sony para el modelo DSC-P31/P31M. Se identificaron las juntas, tornillos M1.7×5 y cables flexibles FP-076 que conectan la placa CD-391 con el cuerpo principal.</p>
+    </div>
+    <div class="process-item">
+      <div class="process-num">02</div>
+      <div class="process-icon">⚡</div>
+      <h3>Mapeo de señales</h3>
+      <p>Se utilizó un multímetro para rastrear los pines activos de la placa SY-100 (placa principal) en relación con el IC301. Los puntos de interés son aquellos que al ser puenteados producen corrupción visual visible en el LCD sin apagar la cámara.</p>
+    </div>
+    <div class="process-item">
+      <div class="process-num">03</div>
+      <div class="process-icon">🎛</div>
+      <h3>Panel de control</h3>
+      <p>Se construyó una caja externa con conectores banana (rojo/negro/azul) que permiten puentear en tiempo real distintos puntos de la PCB. Cada combinación produce un efecto visual diferente: líneas, corrimientos de color, saturación o pérdida total de señal.</p>
+    </div>
+  </div>
+</section>
+
+<!-- TICKER 2 -->
+<div class="ticker">
+  <div class="ticker-inner">
+    <span class="ticker-item accent">▶ ERROR = ESTÉTICA</span>
+    <span class="ticker-item">CCD SIGNAL CORRUPTION</span>
+    <span class="ticker-item accent">▶ ANÁLOGICO + DIGITAL</span>
+    <span class="ticker-item">BEND THE CIRCUIT</span>
+    <span class="ticker-item accent">▶ GLITCH ART</span>
+    <span class="ticker-item">SONY DSC-P31 MODIFIED</span>
+    <span class="ticker-item accent">▶ ERROR = ESTÉTICA</span>
+    <span class="ticker-item">CCD SIGNAL CORRUPTION</span>
+    <span class="ticker-item accent">▶ ANÁLOGICO + DIGITAL</span>
+    <span class="ticker-item">BEND THE CIRCUIT</span>
+    <span class="ticker-item accent">▶ GLITCH ART</span>
+    <span class="ticker-item">SONY DSC-P31 MODIFIED</span>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <h2>CIRCUIT<br>BEND<br><span>DSC-P31</span></h2>
+  </div>
+  <div class="footer-meta">
+    <p>Proyecto <span>experimental</span></p>
+    <p>Cámara: <span>Sony Digital Still Camera</span></p>
+    <p>Modelo: <span>DSC-P31 / P31M</span></p>
+    <p>Sensor: <span>CD-391 Board — IC301 CCD</span></p>
+    <p style="margin-top:1.5rem; color: rgba(255,255,255,0.15)">Glitch is not a bug. It's the signal.</p>
+  </div>
+</footer>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕ CERRAR</button>
+  <img id="lightbox-img" src="" alt="">
+</div>
+
+<script>
+  function openLightbox(el) {
+    const img = el.querySelector('img');
+    document.getElementById('lightbox-img').src = img.src;
+    document.getElementById('lightbox').classList.add('active');
+  }
+
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('active');
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeLightbox();
+  });
+
+  // Random glitch effect on hero title
+  const glitchWords = document.querySelectorAll('.glitch-word');
+  setInterval(() => {
+    glitchWords.forEach(w => {
+      if (Math.random() > 0.85) {
+        w.style.transform = `translateX(${(Math.random()-0.5)*4}px)`;
+        setTimeout(() => w.style.transform = '', 80);
+      }
+    });
+  }, 600);
+
+  // Intersection observer for fade-in
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.process-item, .stat-item').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    observer.observe(el);
+  });
+</script>
+</body>
+</html>
